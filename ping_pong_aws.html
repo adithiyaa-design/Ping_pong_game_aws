@@ -84,7 +84,7 @@ ii<!doctype html>
       const W = canvas.width,
         H = canvas.height;
 
-      // Settings (pixels, pixels/second)
+      
       const PADDLE_W = 12,
         PADDLE_H = 90,
         MARGIN = 20,
@@ -95,7 +95,7 @@ ii<!doctype html>
         SPEEDUP = 1.05;
       const AI_SPEED = 270,
         AI_DEADZONE = 14,
-        MAX_ANGLE = Math.PI / 3; // 60°
+        MAX_ANGLE = Math.PI / 3;
 
       const player = {
         x: MARGIN,
@@ -120,7 +120,7 @@ ii<!doctype html>
         speed: BALL_START,
       };
 
-      // Continuous key-state map (no reliance on key-repeat)
+      
       const keys = {};
       addEventListener("keydown", (e) => {
         if (["ArrowUp", "ArrowDown", " "].includes(e.key)) e.preventDefault();
@@ -134,7 +134,7 @@ ii<!doctype html>
         for (const k in keys) keys[k] = false;
       });
 
-      // Touch / mouse drag: move paddle toward pointer
+
       function pointerY(e) {
         const r = canvas.getBoundingClientRect();
         return (e.clientY - r.top) * (H / r.height);
@@ -153,10 +153,10 @@ ii<!doctype html>
         dragging = false;
       });
 
-      let state = "ready"; // ready | playing | paused
-      let serveTimer = 0; // delay before ball launches after a goal
-      const trail = []; // ball trail (visual only)
-      const pulse = { p: 0, a: 0 }; // score pulse (visual only)
+      let state = "ready";
+      let serveTimer = 0; 
+      const trail = []; 
+      const pulse = { p: 0, a: 0 }; 
       let wallFlash = 0;
 
       function clamp(v, lo, hi) {
@@ -170,7 +170,7 @@ ii<!doctype html>
         else state = "playing";
       }
 
-      // Reset ball to centre, travelling toward `dir` side (-1 = player/left, +1 = AI/right)
+
       function resetBall(dir) {
         ball.x = W / 2;
         ball.y = H / 2;
@@ -182,7 +182,7 @@ ii<!doctype html>
         trail.length = 0;
       }
 
-      // Circle vs. axis-aligned rectangle overlap
+
       function circleRect(b, p) {
         const cx = clamp(b.x, p.x, p.x + p.w);
         const cy = clamp(b.y, p.y, p.y + p.h);
@@ -191,7 +191,6 @@ ii<!doctype html>
         return dx * dx + dy * dy <= b.r * b.r;
       }
 
-      // Bounce off a paddle; angle depends on where the ball hits (bonus)
       function paddleBounce(p, dir) {
         p.flash = 1;
         const rel = clamp((ball.y - (p.y + p.h / 2)) / (p.h / 2), -1, 1);
@@ -202,20 +201,20 @@ ii<!doctype html>
       }
 
       function update(dt) {
-        // Visual effect decay
+
         player.flash = Math.max(0, (player.flash || 0) - dt * 4);
         ai.flash = Math.max(0, (ai.flash || 0) - dt * 4);
         pulse.p = Math.max(0, pulse.p - dt * 2.5);
         pulse.a = Math.max(0, pulse.a - dt * 2.5);
         wallFlash = Math.max(0, wallFlash - dt * 5);
 
-        // Player input
+   
         let move = 0;
         if (keys["w"] || keys["arrowup"]) move -= 1;
         if (keys["s"] || keys["arrowdown"]) move += 1;
         player.y = clamp(player.y + move * PADDLE_SPEED * dt, 0, H - player.h);
 
-        // AI: track ball Y with capped speed and a dead zone; idle toward centre when ball is going away
+
         const target = ball.dx > 0 ? ball.y : H / 2;
         const diff = target - (ai.y + ai.h / 2);
         if (Math.abs(diff) > AI_DEADZONE) {
@@ -223,19 +222,19 @@ ii<!doctype html>
         }
         ai.y = clamp(ai.y, 0, H - ai.h);
 
-        // Serve delay
+
         if (serveTimer > 0) {
           serveTimer -= dt;
           return;
         }
 
-        // Ball movement
+
         ball.x += ball.dx * dt;
         ball.y += ball.dy * dt;
         trail.push({ x: ball.x, y: ball.y });
         if (trail.length > 14) trail.shift();
 
-        // Top / bottom walls
+
         if (ball.y - ball.r < 0) {
           ball.y = ball.r;
           ball.dy = -ball.dy;
@@ -247,7 +246,7 @@ ii<!doctype html>
           wallFlash = 1;
         }
 
-        // Paddles (only on the front face, only when moving toward it)
+
         if (ball.dx < 0 && circleRect(ball, player) && ball.x > player.x) {
           ball.x = player.x + player.w + ball.r;
           paddleBounce(player, 1);
@@ -260,7 +259,7 @@ ii<!doctype html>
           paddleBounce(ai, -1);
         }
 
-        // Scoring: ball serves toward whoever just scored
+
         if (ball.x + ball.r < 0) {
           ai.score++;
           pulse.a = 1;
@@ -296,20 +295,20 @@ ii<!doctype html>
       }
 
       function draw() {
-        // Background
+
         const bg = ctx.createLinearGradient(0, 0, 0, H);
         bg.addColorStop(0, "#0b1020");
         bg.addColorStop(1, "#04060d");
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, W, H);
 
-        // Subtle halves tint
+
         ctx.fillStyle = "rgba(79,209,255,0.035)";
         ctx.fillRect(0, 0, W / 2, H);
         ctx.fillStyle = "rgba(255,107,157,0.035)";
         ctx.fillRect(W / 2, 0, W / 2, H);
 
-        // Top / bottom wall lines (flash on bounce)
+
         ctx.fillStyle =
           wallFlash > 0
             ? "rgba(255,255,255," + (0.25 + 0.6 * wallFlash) + ")"
@@ -317,11 +316,11 @@ ii<!doctype html>
         ctx.fillRect(0, 0, W, 3);
         ctx.fillRect(0, H - 3, W, 3);
 
-        // Centre line
+
         ctx.fillStyle = "#2a3350";
         for (let y = 12; y < H - 6; y += 30) ctx.fillRect(W / 2 - 2, y, 4, 16);
 
-        // Scores and labels
+
         drawScore(player.score, W / 4, "#4fd1ff", pulse.p);
         drawScore(ai.score, (3 * W) / 4, "#ff6b9d", pulse.a);
         ctx.font = "13px monospace";
@@ -330,11 +329,9 @@ ii<!doctype html>
         ctx.fillText("PLAYER", W / 4, 88);
         ctx.fillText("AI", (3 * W) / 4, 88);
 
-        // Paddles (white rectangles with coloured glow)
         drawPaddle(player, "#4fd1ff");
         drawPaddle(ai, "#ff6b9d");
 
-        // Ball trail
         for (let k = 0; k < trail.length; k++) {
           const t = (k + 1) / trail.length;
           ctx.fillStyle = "rgba(255,255,255," + 0.18 * t + ")";
@@ -349,7 +346,7 @@ ii<!doctype html>
           ctx.fill();
         }
 
-        // Serve indicator ring
+
         if (state === "playing" && serveTimer > 0) {
           ctx.strokeStyle = "rgba(255,255,255," + Math.min(1, serveTimer) + ")";
           ctx.lineWidth = 2;
@@ -358,7 +355,7 @@ ii<!doctype html>
           ctx.stroke();
         }
 
-        // Ball
+
         ctx.save();
         ctx.shadowColor = "#fff";
         ctx.shadowBlur = 16;
@@ -368,7 +365,7 @@ ii<!doctype html>
         ctx.fill();
         ctx.restore();
 
-        // Start / pause overlay
+
         if (state !== "playing") {
           ctx.fillStyle = "rgba(4,6,13,0.72)";
           ctx.fillRect(0, 0, W, H);
@@ -397,7 +394,7 @@ ii<!doctype html>
 
       let last = performance.now();
       function loop(now) {
-        const dt = Math.min((now - last) / 1000, 0.05); // clamp to avoid tunnelling after tab switches
+        const dt = Math.min((now - last) / 1000, 0.05);
         last = now;
         if (state === "playing") update(dt);
         draw();
