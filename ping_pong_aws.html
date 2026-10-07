@@ -1,4 +1,4 @@
-ii<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,29 +9,33 @@ ii<!doctype html>
     <title>Pong</title>
     <style>
       :root {
-        --bg: #f2f2f2;
-        --fg: #222;
+        --bg: #070b16;
+        --bg-glow: rgba(79, 209, 255, 0.14);
+        --panel: rgba(16, 22, 36, 0.82);
+        --panel-border: rgba(123, 142, 186, 0.28);
+        --fg: #ebf1ff;
+        --muted: #9aaad1;
+        --player: #4fd1ff;
+        --ai: #ff6b9d;
+        --accent: #85f6be;
         box-sizing: border-box;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) {
-          --bg: #111;
-          --fg: #ddd;
-        }
-      }
-      :root[data-theme="dark"] {
-        --bg: #111;
-        --fg: #ddd;
-      }
+
+      * { box-sizing: border-box; }
+
       html,
       body {
         height: 100%;
         margin: 0;
       }
+
       body {
-        background: var(--bg);
+        background:
+          radial-gradient(circle at top, rgba(79, 209, 255, 0.14), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(255, 107, 157, 0.12), transparent 25%),
+          var(--bg);
         color: var(--fg);
         font-family:
           system-ui,
@@ -39,52 +43,107 @@ ii<!doctype html>
           "Segoe UI",
           sans-serif;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 12px;
+        padding: 28px 16px;
       }
+
+      .game-shell {
+        width: min(920px, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 6px 14px;
+        background: rgba(15, 22, 37, 0.72);
+        border: 1px solid var(--panel-border);
+        border-radius: 999px;
+        box-shadow: 0 0 20px rgba(79, 209, 255, 0.08);
+      }
+
+      .top-bar span {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
       h1 {
         margin: 0;
-        font-size: 22px;
-        letter-spacing: 0.5em;
-        font-weight: 700;
-        padding-left: 0.5em;
+        font-size: clamp(24px, 3vw, 36px);
+        letter-spacing: 0.42em;
+        font-weight: 800;
+        text-transform: uppercase;
+        text-shadow: 0 0 18px rgba(79, 209, 255, 0.26);
       }
-      canvas {
-        background: #000;
-        max-width: 96vw;
-        height: auto;
-        border: 2px solid #2a3350;
-        border-radius: 10px;
+
+      .game-frame {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        padding: 16px;
         box-shadow:
-          0 0 30px rgba(79, 209, 255, 0.18),
-          0 0 60px rgba(255, 107, 157, 0.12);
+          0 0 0 1px rgba(255,255,255,0.02),
+          0 18px 50px rgba(0,0,0,0.35),
+          0 0 28px rgba(79, 209, 255, 0.12);
+      }
+
+      canvas {
+        display: block;
+        width: min(820px, 90vw);
+        height: auto;
+        background: #000;
+        border: 2px solid rgba(129, 147, 193, 0.4);
+        border-radius: 14px;
+        box-shadow:
+          inset 0 0 22px rgba(255,255,255,0.03),
+          0 0 28px rgba(79, 209, 255, 0.12),
+          0 0 42px rgba(255, 107, 157, 0.08);
         touch-action: none;
       }
+
       p {
         margin: 0;
-        font-size: 14px;
-        opacity: 0.8;
+        font-size: 13px;
+        line-height: 1.5;
+        letter-spacing: 0.04em;
+        opacity: 0.9;
         text-align: center;
+        color: var(--muted);
         padding: 0 12px;
+      }
+
+      b {
+        color: var(--fg);
       }
     </style>
   </head>
   <body>
-    <h1>PONG</h1>
-    <canvas id="game" width="800" height="500"></canvas>
-    <p>
-      Move: <b>W / S</b> or <b>↑ / ↓</b> (or drag on touch). Press
-      <b>Space</b> or click to start / pause.
-    </p>
+    <div class="game-shell">
+      <div class="top-bar"><span>Arcade Mode</span></div>
+      <h1>PONG</h1>
+      <div class="game-frame">
+        <canvas id="game" width="800" height="500"></canvas>
+      </div>
+      <p>
+        Move: <b>W / S</b> or <b>↑ / ↓</b> (or drag on touch). Press
+        <b>Space</b> or click to start / pause.
+      </p>
+    </div>
     <script>
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const W = canvas.width,
         H = canvas.height;
 
-      
       const PADDLE_W = 12,
         PADDLE_H = 90,
         MARGIN = 20,
@@ -120,7 +179,6 @@ ii<!doctype html>
         speed: BALL_START,
       };
 
-      
       const keys = {};
       addEventListener("keydown", (e) => {
         if (["ArrowUp", "ArrowDown", " "].includes(e.key)) e.preventDefault();
@@ -133,7 +191,6 @@ ii<!doctype html>
       addEventListener("blur", () => {
         for (const k in keys) keys[k] = false;
       });
-
 
       function pointerY(e) {
         const r = canvas.getBoundingClientRect();
@@ -154,9 +211,9 @@ ii<!doctype html>
       });
 
       let state = "ready";
-      let serveTimer = 0; 
-      const trail = []; 
-      const pulse = { p: 0, a: 0 }; 
+      let serveTimer = 0;
+      const trail = [];
+      const pulse = { p: 0, a: 0 };
       let wallFlash = 0;
 
       function clamp(v, lo, hi) {
@@ -170,7 +227,6 @@ ii<!doctype html>
         else state = "playing";
       }
 
-
       function resetBall(dir) {
         ball.x = W / 2;
         ball.y = H / 2;
@@ -181,7 +237,6 @@ ii<!doctype html>
         serveTimer = 0.8;
         trail.length = 0;
       }
-
 
       function circleRect(b, p) {
         const cx = clamp(b.x, p.x, p.x + p.w);
@@ -201,19 +256,16 @@ ii<!doctype html>
       }
 
       function update(dt) {
-
         player.flash = Math.max(0, (player.flash || 0) - dt * 4);
         ai.flash = Math.max(0, (ai.flash || 0) - dt * 4);
         pulse.p = Math.max(0, pulse.p - dt * 2.5);
         pulse.a = Math.max(0, pulse.a - dt * 2.5);
         wallFlash = Math.max(0, wallFlash - dt * 5);
 
-   
         let move = 0;
         if (keys["w"] || keys["arrowup"]) move -= 1;
         if (keys["s"] || keys["arrowdown"]) move += 1;
         player.y = clamp(player.y + move * PADDLE_SPEED * dt, 0, H - player.h);
-
 
         const target = ball.dx > 0 ? ball.y : H / 2;
         const diff = target - (ai.y + ai.h / 2);
@@ -222,18 +274,15 @@ ii<!doctype html>
         }
         ai.y = clamp(ai.y, 0, H - ai.h);
 
-
         if (serveTimer > 0) {
           serveTimer -= dt;
           return;
         }
 
-
         ball.x += ball.dx * dt;
         ball.y += ball.dy * dt;
         trail.push({ x: ball.x, y: ball.y });
         if (trail.length > 14) trail.shift();
-
 
         if (ball.y - ball.r < 0) {
           ball.y = ball.r;
@@ -246,7 +295,6 @@ ii<!doctype html>
           wallFlash = 1;
         }
 
-
         if (ball.dx < 0 && circleRect(ball, player) && ball.x > player.x) {
           ball.x = player.x + player.w + ball.r;
           paddleBounce(player, 1);
@@ -258,7 +306,6 @@ ii<!doctype html>
           ball.x = ai.x - ball.r;
           paddleBounce(ai, -1);
         }
-
 
         if (ball.x + ball.r < 0) {
           ai.score++;
@@ -295,19 +342,16 @@ ii<!doctype html>
       }
 
       function draw() {
-
         const bg = ctx.createLinearGradient(0, 0, 0, H);
         bg.addColorStop(0, "#0b1020");
         bg.addColorStop(1, "#04060d");
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, W, H);
 
-
         ctx.fillStyle = "rgba(79,209,255,0.035)";
         ctx.fillRect(0, 0, W / 2, H);
         ctx.fillStyle = "rgba(255,107,157,0.035)";
         ctx.fillRect(W / 2, 0, W / 2, H);
-
 
         ctx.fillStyle =
           wallFlash > 0
@@ -316,10 +360,8 @@ ii<!doctype html>
         ctx.fillRect(0, 0, W, 3);
         ctx.fillRect(0, H - 3, W, 3);
 
-
         ctx.fillStyle = "#2a3350";
         for (let y = 12; y < H - 6; y += 30) ctx.fillRect(W / 2 - 2, y, 4, 16);
-
 
         drawScore(player.score, W / 4, "#4fd1ff", pulse.p);
         drawScore(ai.score, (3 * W) / 4, "#ff6b9d", pulse.a);
@@ -346,7 +388,6 @@ ii<!doctype html>
           ctx.fill();
         }
 
-
         if (state === "playing" && serveTimer > 0) {
           ctx.strokeStyle = "rgba(255,255,255," + Math.min(1, serveTimer) + ")";
           ctx.lineWidth = 2;
@@ -354,7 +395,6 @@ ii<!doctype html>
           ctx.arc(ball.x, ball.y, ball.r + 6 + serveTimer * 22, 0, Math.PI * 2);
           ctx.stroke();
         }
-
 
         ctx.save();
         ctx.shadowColor = "#fff";
@@ -365,33 +405,43 @@ ii<!doctype html>
         ctx.fill();
         ctx.restore();
 
-
         if (state !== "playing") {
-          ctx.fillStyle = "rgba(4,6,13,0.72)";
-          ctx.fillRect(0, 0, W, H);
+          const panelX = W / 2 - 220;
+          const panelY = H / 2 - 92;
+          const panelW = 440;
+          const panelH = 170;
+
+          ctx.fillStyle = "rgba(8, 12, 20, 0.7)";
+          ctx.fillRect(panelX, panelY, panelW, panelH);
+          ctx.strokeStyle = "rgba(79,209,255,0.32)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(panelX, panelY, panelW, panelH);
+
           ctx.textAlign = "center";
           ctx.fillStyle = "#fff";
-          ctx.font = "bold 44px monospace";
+          ctx.font = "bold 42px monospace";
           ctx.fillText(
-            state === "ready" ? "PONG" : "PAUSED",
+            state === "ready" ? "START" : "PAUSED",
             W / 2,
-            H / 2 - 20,
+            H / 2 - 18,
           );
+
           ctx.font = "18px monospace";
-          ctx.fillStyle = "#c7d0e8";
+          ctx.fillStyle = "#dfe9ff";
           ctx.fillText(
             state === "ready"
-              ? "Press Space or click to start"
+              ? "Press Space or click to begin"
               : "Press Space or click to resume",
             W / 2,
-            H / 2 + 22,
+            H / 2 + 28,
           );
+
           ctx.font = "14px monospace";
-          ctx.fillStyle = "#7d89a8";
-          ctx.fillText("W / S  or  ↑ / ↓  to move", W / 2, H / 2 + 52);
+          ctx.fillStyle = "#9aaad1";
+          ctx.fillText("W / S  or  ↑ / ↓  to move", W / 2, H / 2 + 58);
         }
       }
-
+      // Start the game loop
       let last = performance.now();
       function loop(now) {
         const dt = Math.min((now - last) / 1000, 0.05);
